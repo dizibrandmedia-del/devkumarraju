@@ -4,35 +4,43 @@
  * Version: 2.0
  */
 
-document.addEventListener('DOMContentLoaded', () => {
+function initApplication() {
   'use strict';
 
   /* ==========================================================================
-     1. PRELOADER CONTROLLER
+     1. PRELOADER CONTROLLER (FAST & RESILIENT)
      ========================================================================== */
   const preloader = document.getElementById('preloader');
   const preloaderFill = document.getElementById('preloaderFill');
   const skipPreloaderBtn = document.getElementById('skipPreloaderBtn');
 
-  let loadProgress = 0;
-  const progressInterval = setInterval(() => {
-    loadProgress += Math.floor(Math.random() * 25) + 15;
-    if (loadProgress >= 100) {
-      loadProgress = 100;
-      clearInterval(progressInterval);
-      setTimeout(dismissPreloader, 350);
-    }
-    if (preloaderFill) {
-      preloaderFill.style.width = `${loadProgress}%`;
-    }
-  }, 100);
-
   function dismissPreloader() {
     if (preloader && !preloader.classList.contains('hidden')) {
       preloader.classList.add('hidden');
       document.body.classList.add('loaded');
+      setTimeout(() => {
+        if (preloader) {
+          preloader.style.display = 'none';
+        }
+      }, 500);
     }
   }
+
+  let loadProgress = 0;
+  const progressInterval = setInterval(() => {
+    loadProgress += Math.floor(Math.random() * 35) + 30;
+    if (preloaderFill) {
+      preloaderFill.style.width = `${Math.min(loadProgress, 100)}%`;
+    }
+    if (loadProgress >= 100) {
+      clearInterval(progressInterval);
+      setTimeout(dismissPreloader, 150);
+    }
+  }, 50);
+
+  // Safety fallbacks: auto-dismiss immediately on window load or max 650ms timeout
+  window.addEventListener('load', dismissPreloader);
+  setTimeout(dismissPreloader, 650);
 
   if (skipPreloaderBtn) {
     skipPreloaderBtn.addEventListener('click', () => {
@@ -718,69 +726,79 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   /* ==========================================================================
-     14. WEB AUDIO AMBIENT DRONE SYNTHESIZER
+     14. BACKGROUND MUSIC & AMBIENT AUDIO CONTROLLER
      ========================================================================== */
-  let audioCtx = null;
-  let isAudioPlaying = false;
-  let synthGain = null;
-
+  const bgMusicAudio = document.getElementById('bgMusicAudio');
   const audioToggleBtn = document.getElementById('audioToggleBtn');
   const audioIconMuted = document.getElementById('audioIconMuted');
   const audioIconPlaying = document.getElementById('audioIconPlaying');
 
-  function initAmbientSynth() {
-    try {
-      const AudioContext = window.AudioContext || window.webkitAudioContext;
-      audioCtx = new AudioContext();
+  if (bgMusicAudio && audioToggleBtn) {
+    bgMusicAudio.volume = 0.35; // Gentle ambient background level
 
-      // Master gain
-      synthGain = audioCtx.createGain();
-      synthGain.gain.setValueAtTime(0.08, audioCtx.currentTime);
-      synthGain.connect(audioCtx.destination);
-
-      // Frequencies for a soothing meditative Indian raga / tanpura drone (Sa-Pa fundamental)
-      const droneFreqs = [130.81, 196.0, 261.63, 392.0]; // C3, G3, C4, G4
-
-      droneFreqs.forEach((freq) => {
-        const osc = audioCtx.createOscillator();
-        const oscGain = audioCtx.createGain();
-        osc.type = 'sine';
-        osc.frequency.setValueAtTime(freq, audioCtx.currentTime);
-
-        // Subtle detune for shimmer
-        osc.detune.setValueAtTime(Math.random() * 8 - 4, audioCtx.currentTime);
-
-        oscGain.gain.setValueAtTime(0.2, audioCtx.currentTime);
-        osc.connect(oscGain);
-        oscGain.connect(synthGain);
-        osc.start();
-      });
-    } catch (err) {
-      console.warn('Web Audio Synth not supported:', err);
-    }
-  }
-
-  if (audioToggleBtn) {
-    audioToggleBtn.addEventListener('click', () => {
-      if (!audioCtx) {
-        initAmbientSynth();
-        isAudioPlaying = true;
+    function updateAudioUI(isPlaying) {
+      if (isPlaying) {
+        if (audioIconMuted) audioIconMuted.style.display = 'none';
+        if (audioIconPlaying) audioIconPlaying.style.display = 'block';
+        audioToggleBtn.classList.add('playing');
+        audioToggleBtn.setAttribute('title', 'संगीत बंद करें (Pause Music)');
+        audioToggleBtn.setAttribute('aria-label', 'संगीत बंद करें');
       } else {
-        if (isAudioPlaying) {
-          audioCtx.suspend();
-          isAudioPlaying = false;
-        } else {
-          audioCtx.resume();
-          isAudioPlaying = true;
+        if (audioIconMuted) audioIconMuted.style.display = 'block';
+        if (audioIconPlaying) audioIconPlaying.style.display = 'none';
+        audioToggleBtn.classList.remove('playing');
+        audioToggleBtn.setAttribute('title', 'संगीत चालू करें (Play Shiva Tandav & Ganga Aarti)');
+        audioToggleBtn.setAttribute('aria-label', 'संगीत चालू करें');
+      }
+    }
+
+    async function toggleAudio() {
+      if (bgMusicAudio.paused) {
+        try {
+          await bgMusicAudio.play();
+          updateAudioUI(true);
+          showGlobalToast('🎵 पृष्ठभूमि संगीत चालू (Shiva Tandav & Ganga Aarti)');
+        } catch (err) {
+          console.warn('Audio playback restricted:', err);
+          showGlobalToast('⚠️ प्ले करने के लिए बटन पर पुनः क्लिक करें');
         }
+      } else {
+        bgMusicAudio.pause();
+        updateAudioUI(false);
+        showGlobalToast('🔇 पृष्ठभूमि संगीत बंद');
       }
+    }
 
-      if (audioIconMuted && audioIconPlaying) {
-        audioIconMuted.style.display = isAudioPlaying ? 'none' : 'block';
-        audioIconPlaying.style.display = isAudioPlaying ? 'block' : 'none';
+    audioToggleBtn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      toggleAudio();
+    });
+
+    // Auto-enable audio on first user touch/click gesture if not muted
+    let firstGestureDone = false;
+    const startAudioOnFirstInteraction = () => {
+      if (!firstGestureDone) {
+        firstGestureDone = true;
+        if (bgMusicAudio.paused) {
+          bgMusicAudio.play().then(() => {
+            updateAudioUI(true);
+          }).catch(() => {
+            updateAudioUI(false);
+          });
+        }
+        window.removeEventListener('click', startAudioOnFirstInteraction);
+        window.removeEventListener('touchstart', startAudioOnFirstInteraction);
       }
+    };
 
-      showToast(isAudioPlaying ? '🎵 बैकग्राउंड संगीत चालू' : '🔇 बैकग्राउंड संगीत बंद');
+    window.addEventListener('click', startAudioOnFirstInteraction, { once: true });
+    window.addEventListener('touchstart', startAudioOnFirstInteraction, { once: true, passive: true });
+
+    bgMusicAudio.addEventListener('play', () => updateAudioUI(true));
+    bgMusicAudio.addEventListener('pause', () => updateAudioUI(false));
+    bgMusicAudio.addEventListener('ended', () => {
+      bgMusicAudio.currentTime = 0;
+      bgMusicAudio.play().catch(() => {});
     });
   }
 
@@ -1004,81 +1022,10 @@ document.addEventListener('DOMContentLoaded', () => {
       globalToast.classList.remove('show');
     }, duration);
   }
+}
 
-  /* ==========================================================================
-     21. BACKGROUND MUSIC & AMBIENT AUDIO CONTROLLER
-     ========================================================================== */
-  const bgMusicAudio = document.getElementById('bgMusicAudio');
-  const audioToggleBtn = document.getElementById('audioToggleBtn');
-  const audioIconMuted = document.getElementById('audioIconMuted');
-  const audioIconPlaying = document.getElementById('audioIconPlaying');
-
-  if (bgMusicAudio && audioToggleBtn) {
-    bgMusicAudio.volume = 0.35; // Gentle ambient background level
-
-    function updateAudioUI(isPlaying) {
-      if (isPlaying) {
-        if (audioIconMuted) audioIconMuted.style.display = 'none';
-        if (audioIconPlaying) audioIconPlaying.style.display = 'block';
-        audioToggleBtn.classList.add('playing');
-        audioToggleBtn.setAttribute('title', 'संगीत बंद करें (Pause Music)');
-        audioToggleBtn.setAttribute('aria-label', 'संगीत बंद करें');
-      } else {
-        if (audioIconMuted) audioIconMuted.style.display = 'block';
-        if (audioIconPlaying) audioIconPlaying.style.display = 'none';
-        audioToggleBtn.classList.remove('playing');
-        audioToggleBtn.setAttribute('title', 'संगीत चालू करें (Play Shiva Tandav & Ganga Aarti)');
-        audioToggleBtn.setAttribute('aria-label', 'संगीत चालू करें');
-      }
-    }
-
-    async function toggleAudio() {
-      if (bgMusicAudio.paused) {
-        try {
-          await bgMusicAudio.play();
-          updateAudioUI(true);
-          showGlobalToast('🎵 पृष्ठभूमि संगीत चालू (Shiva Tandav & Ganga Aarti)');
-        } catch (err) {
-          console.warn('Audio playback restricted:', err);
-          showGlobalToast('⚠️ प्ले करने के लिए बटन पर पुनः क्लिक करें');
-        }
-      } else {
-        bgMusicAudio.pause();
-        updateAudioUI(false);
-        showGlobalToast('🔇 पृष्ठभूमि संगीत बंद');
-      }
-    }
-
-    audioToggleBtn.addEventListener('click', (e) => {
-      e.stopPropagation();
-      toggleAudio();
-    });
-
-    // Auto-enable audio on first user touch/click gesture if not muted
-    let firstGestureDone = false;
-    const startAudioOnFirstInteraction = () => {
-      if (!firstGestureDone) {
-        firstGestureDone = true;
-        if (bgMusicAudio.paused) {
-          bgMusicAudio.play().then(() => {
-            updateAudioUI(true);
-          }).catch(() => {
-            updateAudioUI(false);
-          });
-        }
-        window.removeEventListener('click', startAudioOnFirstInteraction);
-        window.removeEventListener('touchstart', startAudioOnFirstInteraction);
-      }
-    };
-
-    window.addEventListener('click', startAudioOnFirstInteraction, { once: true });
-    window.addEventListener('touchstart', startAudioOnFirstInteraction, { once: true, passive: true });
-
-    bgMusicAudio.addEventListener('play', () => updateAudioUI(true));
-    bgMusicAudio.addEventListener('pause', () => updateAudioUI(false));
-    bgMusicAudio.addEventListener('ended', () => {
-      bgMusicAudio.currentTime = 0;
-      bgMusicAudio.play().catch(() => {});
-    });
-  }
-});
+if (document.readyState === 'loading') {
+  document.addEventListener('DOMContentLoaded', initApplication);
+} else {
+  initApplication();
+}

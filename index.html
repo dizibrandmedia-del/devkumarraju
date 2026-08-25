@@ -1776,7 +1776,17 @@
   <!-- TOAST NOTIFICATION POPUP -->
   <div class="global-toast" id="globalToast" role="status" aria-live="polite"></div>
 
-  <!-- Main JavaScript Bundle -->
-  <script src="js/app.js"></script>
+  <!-- Main JavaScript Bundle with version cache-buster and inline safety fallback -->
+  <script src="js/app.js?v=2.1"></script>
+  <script>
+    setTimeout(function() {
+      var p = document.getElementById('preloader');
+      if (p && !p.classList.contains('hidden')) {
+        p.classList.add('hidden');
+        document.body.classList.add('loaded');
+        setTimeout(function() { if (p) p.style.display = 'none'; }, 500);
+      }
+    }, 700);
+  </script>
 </body>
 </html>
