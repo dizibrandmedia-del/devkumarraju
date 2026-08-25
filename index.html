@@ -36,7 +36,7 @@
   <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@600;700;800&family=Mukta:wght@300;400;500;600;700;800&family=Noto+Sans+Devanagari:wght@400;500;600;700;800;900&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 
   <!-- Main Design System CSS -->
-  <link rel="stylesheet" href="css/styles.css?v=2.3">
+  <link rel="stylesheet" href="css/styles.css?v=2.4">
 
   <!-- Schema.org JSON-LD -->
   <script type="application/ld+json">
@@ -284,10 +284,10 @@
                 <!-- Subtle Decorative Background Watermark -->
                 <div class="pillar-watermark">1</div>
 
-                <!-- Top Pillar Header Badge -->
-                <div class="pillar-top-badge">
+                <!-- Top Pillar Header Badge (Clickable to open Voter Appeal Letter) -->
+                <div class="pillar-top-badge" id="openAppealBadge" role="button" tabindex="0" title="मतदाता अपील पत्र पढ़ें" style="cursor: pointer;">
                   <span class="pillar-badge-icon">🗳️</span>
-                  <span class="pillar-badge-text">मतदाता अपील • MLC</span>
+                  <span class="pillar-badge-text">मतदाता अपील • MLC ↗</span>
                 </div>
 
                 <!-- Center: Vote Capsule & Callout -->
@@ -1773,11 +1773,90 @@
     </div>
   </aside>
 
+  <!-- ==========================================================================
+       VOTER APPEAL POPUP MODAL (ऑन-स्क्रॉल आधिकारिक मतदाता अपील पत्र)
+       ========================================================================== -->
+  <div class="appeal-modal-backdrop" id="appealModal" role="dialog" aria-modal="true" aria-labelledby="appealModalTitle" aria-hidden="true">
+    <div class="appeal-modal-dialog">
+      <!-- Top Luxury Header Bar -->
+      <div class="appeal-modal-header">
+        <div class="appeal-header-brand">
+          <div class="appeal-avatar-ring">
+            <img src="assets/images/candidate_logo.png" alt="देव कुमार (राजू गुप्ता)" class="appeal-avatar-img">
+          </div>
+          <div class="appeal-header-titles">
+            <span class="appeal-tag-badge">🗳️ आधिकारिक मतदाता अपील • MLC 2026</span>
+            <h3 class="appeal-main-title" id="appealModalTitle">स्नातक मतदाता के नाम — एक आत्मीय निवेदन</h3>
+            <p class="appeal-sub-title">वाराणसी खण्ड स्नातक निर्वाचन क्षेत्र (8 जनपद)</p>
+          </div>
+        </div>
+        <button type="button" class="appeal-close-btn" id="appealModalCloseBtn" aria-label="अपील बंद करें">&times;</button>
+      </div>
+
+      <!-- Scrollable Authentic Appeal Letter Body -->
+      <div class="appeal-modal-body">
+        <div class="appeal-letter-frame">
+          <div class="appeal-salutation">
+            <strong>आदरणीय स्नातक मतदाता जी,</strong>
+            <p>सादर नमस्कार।</p>
+          </div>
+
+          <div class="appeal-paragraphs">
+            <p>
+              मैं <strong>देव कुमार (राजू गुप्ता)</strong>, अधिवक्ता, लंबे समय से सामाजिक, शैक्षणिक और जनहित के कार्यों से जुड़ा हूँ। छात्रसंघ के पूर्व महामंत्री एवं पूर्व अध्यक्ष के रूप में विद्यार्थियों और युवाओं की समस्याओं के समाधान के लिए निरंतर संघर्ष करता रहा हूँ।
+            </p>
+            <p>
+              अब <strong>वाराणसी खण्ड स्नातक निर्वाचन क्षेत्र</strong> में आपकी आवाज़ को मजबूती से उठाने का संकल्प लेकर आपके बीच उपस्थित हूँ। <strong>रोजगार, निष्पक्ष भर्ती, शिक्षक सम्मान, अधिवक्ता एवं व्यापारी सुरक्षा</strong> तथा स्नातकों के अधिकार मेरी प्रमुख प्राथमिकताएँ हैं।
+            </p>
+            <p>
+              आपसे आत्मीय निवेदन है कि मेरे सामाजिक कार्यों, संघर्ष और योग्यता का मूल्यांकन कर अपना <strong>सहयोग, सुझाव एवं आशीर्वाद</strong> प्रदान करें।
+            </p>
+          </div>
+
+          <!-- Highlighted Motto Quote Card -->
+          <div class="appeal-quote-card">
+            <div class="quote-ornament">❝</div>
+            <p class="quote-text">“आपका एक सुझाव मेरा मार्गदर्शन और आपका विश्वास मेरी शक्ति है।”</p>
+            <div class="quote-ornament right">❞</div>
+          </div>
+
+          <!-- Signoff & Candidate Credentials Block -->
+          <div class="appeal-signature-block">
+            <div class="sig-details">
+              <span class="sig-regards">आपका अपना,</span>
+              <strong class="sig-name">देव कुमार (राजू गुप्ता), अधिवक्ता</strong>
+              <span class="sig-candidate">स्नातक MLC प्रत्याशी — वाराणसी खण्ड</span>
+              <div class="sig-slogan">“स्नातकों का सम्मान — हमारा अभियान”</div>
+            </div>
+            <div class="sig-vote-badge">
+              <span class="sig-vote-num">1</span>
+              <span class="sig-vote-txt">प्रथम वरीयता मत</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Modal Footer CTA Actions -->
+      <div class="appeal-modal-footer">
+        <a href="assets/docs/Dev_Kumar_Voter_Appeal.pdf" target="_blank" rel="noopener noreferrer" class="btn btn-primary appeal-cta-btn" id="downloadAppealPdfBtn">
+          <span>📄 मूल अपील PDF डाउनलोड / देखें</span>
+          <svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor"><path d="M5 20h14v-2H5v2zm7-18L5.33 9h4.67v6h4V9h4.67L12 2z"/></svg>
+        </a>
+        <a href="https://wa.me/918176986030?text=%E0%A4%A8%E0%A4%AE%E0%A4%B8%E0%A5%8D%E0%A4%A4%E0%A5%87%20%E0%A4%A6%E0%A5%87%E0%A4%B5%20%E0%A4%95%E0%A5%81%E0%A4%AE%E0%A4%BE%E0%A4%B0%20%E0%A4%B0%E0%A4%BE%E0%A4%9C%E0%A5%82%20%E0%A4%9C%E0%A5%80%2C%20%E0%A4%AE%E0%A5%88%E0%A4%82%E0%A4%A8%E0%A5%87%20%E0%A4%86%E0%A4%AA%E0%A4%95%E0%A5%80%20%E0%A4%AE%E0%A4%A4%E0%A4%A6%E0%A4%BE%E0%A4%A4%E0%A4%BE%20%E0%A4%85%E0%A4%AA%E0%A5%80%E0%A4%B2%20%E0%A4%AA%E0%A4%A2%E0%A4%BC%E0%A5%80%20%E0%A4%B9%E0%A5%88%20%E0%A4%94%E0%A4%B0%20%E0%A4%B8%E0%A4%B9%E0%A4%AF%E0%A5%8B%E0%A4%97%20%E0%A4%95%E0%A4%B0%E0%A4%A8%E0%A4%BE%20%E0%A4%9A%E0%A4%BE%E0%A4%B9%E0%A4%A4%E0%A4%BE%20%E0%A4%B9%E0%A5%82%E0%A4%82%E0%A5%A4" target="_blank" rel="noopener noreferrer" class="btn btn-whatsapp appeal-cta-btn">
+          <span>💬 WhatsApp समर्थन</span>
+        </a>
+        <button type="button" class="btn btn-outline appeal-close-text-btn" id="appealDismissBtn">
+          <span>बंद करें</span>
+        </button>
+      </div>
+    </div>
+  </div>
+
   <!-- TOAST NOTIFICATION POPUP -->
   <div class="global-toast" id="globalToast" role="status" aria-live="polite"></div>
 
   <!-- Main JavaScript Bundle with version cache-buster and inline safety fallback -->
-  <script src="js/app.js?v=2.1"></script>
+  <script src="js/app.js?v=2.2"></script>
   <script>
     setTimeout(function() {
       var p = document.getElementById('preloader');

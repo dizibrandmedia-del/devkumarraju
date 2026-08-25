@@ -1022,6 +1022,83 @@ function initApplication() {
       globalToast.classList.remove('show');
     }, duration);
   }
+
+  /* ==========================================================================
+     21. VOTER APPEAL POPUP MODAL (ON-SCROLL & CLICK TRIGGER)
+     ========================================================================== */
+  const appealModal = document.getElementById('appealModal');
+  const appealModalCloseBtn = document.getElementById('appealModalCloseBtn');
+  const appealDismissBtn = document.getElementById('appealDismissBtn');
+  const openAppealBadge = document.getElementById('openAppealBadge');
+
+  function openAppealModal() {
+    if (appealModal) {
+      appealModal.classList.add('open');
+      appealModal.setAttribute('aria-hidden', 'false');
+      document.body.style.overflow = 'hidden';
+    }
+  }
+
+  function closeAppealModal() {
+    if (appealModal) {
+      appealModal.classList.remove('open');
+      appealModal.setAttribute('aria-hidden', 'true');
+      document.body.style.overflow = '';
+      sessionStorage.setItem('appealPopupDismissed', 'true');
+    }
+  }
+
+  if (appealModal) {
+    if (appealModalCloseBtn) appealModalCloseBtn.addEventListener('click', closeAppealModal);
+    if (appealDismissBtn) appealDismissBtn.addEventListener('click', closeAppealModal);
+
+    // Close on clicking backdrop outside dialog
+    appealModal.addEventListener('click', (e) => {
+      if (e.target === appealModal) {
+        closeAppealModal();
+      }
+    });
+
+    // Close on ESC key
+    window.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape' && appealModal.classList.contains('open')) {
+        closeAppealModal();
+      }
+    });
+
+    // Open when clicking badge in Hero Card
+    if (openAppealBadge) {
+      openAppealBadge.addEventListener('click', (e) => {
+        e.preventDefault();
+        openAppealModal();
+      });
+      openAppealBadge.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter' || e.key === ' ') {
+          e.preventDefault();
+          openAppealModal();
+        }
+      });
+    }
+
+    // Scroll trigger: pop up once when user scrolls past 400px
+    let scrollTriggered = false;
+    function checkScrollAppeal() {
+      if (scrollTriggered) return;
+      if (sessionStorage.getItem('appealPopupDismissed') === 'true') return;
+
+      if (window.scrollY > 400) {
+        scrollTriggered = true;
+        setTimeout(() => {
+          if (sessionStorage.getItem('appealPopupDismissed') !== 'true') {
+            openAppealModal();
+          }
+        }, 300);
+        window.removeEventListener('scroll', checkScrollAppeal);
+      }
+    }
+
+    window.addEventListener('scroll', checkScrollAppeal, { passive: true });
+  }
 }
 
 if (document.readyState === 'loading') {
