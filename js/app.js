@@ -988,4 +988,97 @@ document.addEventListener('DOMContentLoaded', () => {
       setTimeout(() => circle.remove(), 650);
     });
   });
+
+  /* ==========================================================================
+     20. GLOBAL TOAST NOTIFICATION HELPER
+     ========================================================================== */
+  const globalToast = document.getElementById('globalToast');
+  let toastTimer = null;
+
+  function showGlobalToast(msg, duration = 3000) {
+    if (!globalToast) return;
+    globalToast.textContent = msg;
+    globalToast.classList.add('show');
+    clearTimeout(toastTimer);
+    toastTimer = setTimeout(() => {
+      globalToast.classList.remove('show');
+    }, duration);
+  }
+
+  /* ==========================================================================
+     21. BACKGROUND MUSIC & AMBIENT AUDIO CONTROLLER
+     ========================================================================== */
+  const bgMusicAudio = document.getElementById('bgMusicAudio');
+  const audioToggleBtn = document.getElementById('audioToggleBtn');
+  const audioIconMuted = document.getElementById('audioIconMuted');
+  const audioIconPlaying = document.getElementById('audioIconPlaying');
+
+  if (bgMusicAudio && audioToggleBtn) {
+    bgMusicAudio.volume = 0.35; // Gentle ambient background level
+
+    function updateAudioUI(isPlaying) {
+      if (isPlaying) {
+        if (audioIconMuted) audioIconMuted.style.display = 'none';
+        if (audioIconPlaying) audioIconPlaying.style.display = 'block';
+        audioToggleBtn.classList.add('playing');
+        audioToggleBtn.setAttribute('title', 'संगीत बंद करें (Pause Music)');
+        audioToggleBtn.setAttribute('aria-label', 'संगीत बंद करें');
+      } else {
+        if (audioIconMuted) audioIconMuted.style.display = 'block';
+        if (audioIconPlaying) audioIconPlaying.style.display = 'none';
+        audioToggleBtn.classList.remove('playing');
+        audioToggleBtn.setAttribute('title', 'संगीत चालू करें (Play Shiva Tandav & Ganga Aarti)');
+        audioToggleBtn.setAttribute('aria-label', 'संगीत चालू करें');
+      }
+    }
+
+    async function toggleAudio() {
+      if (bgMusicAudio.paused) {
+        try {
+          await bgMusicAudio.play();
+          updateAudioUI(true);
+          showGlobalToast('🎵 पृष्ठभूमि संगीत चालू (Shiva Tandav & Ganga Aarti)');
+        } catch (err) {
+          console.warn('Audio playback restricted:', err);
+          showGlobalToast('⚠️ प्ले करने के लिए बटन पर पुनः क्लिक करें');
+        }
+      } else {
+        bgMusicAudio.pause();
+        updateAudioUI(false);
+        showGlobalToast('🔇 पृष्ठभूमि संगीत बंद');
+      }
+    }
+
+    audioToggleBtn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      toggleAudio();
+    });
+
+    // Auto-enable audio on first user touch/click gesture if not muted
+    let firstGestureDone = false;
+    const startAudioOnFirstInteraction = () => {
+      if (!firstGestureDone) {
+        firstGestureDone = true;
+        if (bgMusicAudio.paused) {
+          bgMusicAudio.play().then(() => {
+            updateAudioUI(true);
+          }).catch(() => {
+            updateAudioUI(false);
+          });
+        }
+        window.removeEventListener('click', startAudioOnFirstInteraction);
+        window.removeEventListener('touchstart', startAudioOnFirstInteraction);
+      }
+    };
+
+    window.addEventListener('click', startAudioOnFirstInteraction, { once: true });
+    window.addEventListener('touchstart', startAudioOnFirstInteraction, { once: true, passive: true });
+
+    bgMusicAudio.addEventListener('play', () => updateAudioUI(true));
+    bgMusicAudio.addEventListener('pause', () => updateAudioUI(false));
+    bgMusicAudio.addEventListener('ended', () => {
+      bgMusicAudio.currentTime = 0;
+      bgMusicAudio.play().catch(() => {});
+    });
+  }
 });

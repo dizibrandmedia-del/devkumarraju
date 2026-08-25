@@ -501,6 +501,16 @@ ul, ol {
   color: var(--dark-surface);
   transform: translateY(-2px);
 }
+.ctrl-btn.audio-btn.playing {
+  background: linear-gradient(135deg, var(--gold), #B38600) !important;
+  color: var(--dark-surface) !important;
+  box-shadow: 0 0 15px rgba(212, 175, 55, 0.7);
+  animation: audioPulse 2s infinite ease-in-out;
+}
+@keyframes audioPulse {
+  0%, 100% { transform: scale(1); box-shadow: 0 0 10px rgba(212, 175, 55, 0.5); }
+  50% { transform: scale(1.08); box-shadow: 0 0 20px rgba(212, 175, 55, 0.9); }
+}
 
 .btn.btn-header-connect,
 .btn.btn-header-cta,
